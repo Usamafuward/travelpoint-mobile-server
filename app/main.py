@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth, posts, profile, guides, equipments, authorities, vehicles
+from app.routers import auth, posts, profile, guides, equipments, authorities, vehicles, home
 from starlette.middleware.sessions import SessionMiddleware
 from app.database import conn, cur
 
@@ -13,6 +13,7 @@ async def root():
 
 # Include Routers
 app.include_router(auth.router)
+app.include_router(home.router)
 app.include_router(posts.router)
 app.include_router(profile.router)
 app.include_router(guides.router)

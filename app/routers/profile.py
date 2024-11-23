@@ -137,7 +137,20 @@ async def get_posts_by_user(poster_id: int):
     """
     Retrieve all posts created by a specific user.
     """
-    query = b"SELECT * FROM posts WHERE poster_id = %s"
+    query = b"""SELECT 
+        posts.id, 
+        posts.poster_id, 
+        posts.caption, 
+        posts.images, 
+        posts.video_url, 
+        posts.location, 
+        posts.tagged_users, 
+        posts.created_at, 
+        posts.likes,
+        users.username, 
+        users.profile_pic
+    FROM posts
+    JOIN users ON posts.poster_id = users.id WHERE poster_id = %s"""
     try:
         cur.execute(query, (poster_id,))
         result = cur.fetchall()
@@ -165,13 +178,14 @@ async def get_posts_by_user(poster_id: int):
             post_data = PostResponse(
                 id=row["id"],
                 poster_id=row["poster_id"],
+                username=row["username"],
+                profile_pic=row["profile_pic"],
                 caption=row["caption"],
                 images=images,
                 video_url=row.get("video_url"),
                 location=row.get("location"),
-                tagged_users=row.get("tagged_users", []),
                 created_at=created_at_str,
-                likes=row.get("likes", 0),
+                likes=row.get("likes", 0)
             )
             processed_result.append(post_data)
 
