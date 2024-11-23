@@ -9,6 +9,8 @@ import base64
 import io
 import psycopg
 from app.utils.image_processing import process_images
+from app.schemas.post import PostResponse
+from typing import List, Optional
 
 router = APIRouter()
 
@@ -129,3 +131,7 @@ async def update_profile(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"message": endpoint_errors[500]["description"]},
         )
+        
+        
+
+
