@@ -18,8 +18,9 @@ class PostResponse(BaseModel):
     images: List[str] 
     video_url: Optional[str] = None
     location: Optional[str] = None
-    tagged_users: Optional[List[int]] = None
     created_at: str
     likes: int
+    username: Optional[str]
+    profile_pic: Optional[str]
 
 
