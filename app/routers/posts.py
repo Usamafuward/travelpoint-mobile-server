@@ -112,6 +112,10 @@ async def get_all_posts():
                 images = [img.decode("utf-8") if isinstance(img, bytes) else img for img in images]
             else:
                 images = []
+                
+            created_at = row["created_at"]
+            # Convert created_at to ISO string format
+            created_at_str = created_at.isoformat() if created_at else None
 
             # Create PostResponse object for each row
             post_data = PostResponse(
@@ -122,7 +126,7 @@ async def get_all_posts():
                 video_url=row.get("video_url"),
                 location=row.get("location"),
                 tagged_users=row.get("tagged_users", []),
-                created_at=int(row["created_at"].timestamp()),
+                created_at=created_at_str,
                 likes=row.get("likes", 0)
             )
             processed_result.append(post_data)
@@ -154,6 +158,10 @@ async def get_post(post_id: int):
             else:
                 images = []
 
+            created_at = result["created_at"]
+            # Convert created_at to ISO string format
+            created_at_str = created_at.isoformat() if created_at else None
+            
             # Create a PostResponse object
             post_data = PostResponse(
                 id=result["id"],
@@ -163,7 +171,7 @@ async def get_post(post_id: int):
                 video_url=result.get("video_url"),
                 location=result.get("location"),
                 tagged_users=result.get("tagged_users", []),
-                created_at=result["created_at"],
+                created_at=created_at_str,
                 likes=result.get("likes", 0)
             )
 
