@@ -132,6 +132,59 @@ async def update_profile(
             content={"message": endpoint_errors[500]["description"]},
         )
         
-        
+@router.get("/profile/posts/{poster_id}", response_model=List[PostResponse], responses=endpoint_errors)
+async def get_posts_by_user(poster_id: int):
+    """
+    Retrieve all posts created by a specific user.
+    """
+    query = b"SELECT * FROM posts WHERE poster_id = %s"
+    try:
+        cur.execute(query, (poster_id,))
+        result = cur.fetchall()
+
+        if not result:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={"message": "No posts found for this user"},
+            )
+
+        processed_result = []
+        for row in result:
+            # Decode images if present
+            images = row["images"]
+            if images:
+                images = [img.decode("utf-8") if isinstance(img, bytes) else img for img in images]
+            else:
+                images = []
+
+            created_at = row["created_at"]
+            # Convert created_at to ISO string format
+            created_at_str = created_at.isoformat() if created_at else None
+            
+            # Create PostResponse object for each row
+            post_data = PostResponse(
+                id=row["id"],
+                poster_id=row["poster_id"],
+                caption=row["caption"],
+                images=images,
+                video_url=row.get("video_url"),
+                location=row.get("location"),
+                tagged_users=row.get("tagged_users", []),
+                created_at=created_at_str,
+                likes=row.get("likes", 0),
+            )
+            processed_result.append(post_data)
+
+        return JSONResponse(
+            content=[post.dict() for post in processed_result],
+            status_code=status.HTTP_200_OK,
+        )
+
+    except Exception as e:
+        print(f"ERROR - DB:\n{e}")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"message": endpoint_errors[500]["description"]},
+        )    
 
 

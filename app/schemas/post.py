@@ -19,7 +19,7 @@ class PostResponse(BaseModel):
     video_url: Optional[str] = None
     location: Optional[str] = None
     tagged_users: Optional[List[int]] = None
-    created_at: datetime
+    created_at: str
     likes: int
 
 
