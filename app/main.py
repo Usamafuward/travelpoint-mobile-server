@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth, posts, profile, guides, equipments, authorities, vehicles, home
+from app.routers import auth, posts, profile, guides, equipments, authorities, vehicles, home, follow
 from starlette.middleware.sessions import SessionMiddleware
 from app.database import conn, cur
 
@@ -20,6 +20,7 @@ app.include_router(guides.router)
 app.include_router(equipments.router)
 app.include_router(authorities.router)
 app.include_router(vehicles.router)
+app.include_router(follow.router)
 
 
 
