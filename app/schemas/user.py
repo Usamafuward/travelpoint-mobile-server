@@ -10,3 +10,4 @@ class Profile(BaseModel):
     dateOfBirth: Optional[str]
     profilePic: Optional[str]
     bio: Optional[str]
+    type: Optional[int]
