@@ -14,12 +14,9 @@ RUN apt-get update && apt-get -y install git
 # clone backend repo
 RUN git clone -b feature/gr/deployment https://github.com/Usamafuward/travelpoint-mobile-server/ /opt/travelpoint-mobile-server
 
-# copy database file for creation
-RUN cp /opt/travelpoint-mobile-server/db-export.sql /docker-entrypoint-initdb.d/
-
 # restore db
 RUN echo '#!/bin/bash\n\
-pg_restore -U postgres -d tp /opt/travelpoint-mobile-server/db-export.sql' > /docker-entrypoint-initdb.d/restore.sh \
+pg_restore -U postgres -d travelpoint /opt/travelpoint-mobile-server/db-export.sql' > /docker-entrypoint-initdb.d/restore.sh \
 && chmod +x /docker-entrypoint-initdb.d/restore.sh
 
 # to run
