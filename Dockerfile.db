@@ -1,0 +1,24 @@
+FROM postgres:17-bookworm
+
+# env vars
+ENV POSTGRES_PASSWORD=root
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_DB=travelpoint
+
+# ports
+EXPOSE 5432
+
+# install necessary tools
+RUN apt-get update && apt-get -y install git
+
+# clone backend repo
+RUN git clone https://github.com/Usamafuward/travelpoint-mobile-server/
+RUN git checkout feature/gr/deployment
+WORKDIR /opt/travelpoint-mobile-server
+
+# copy database file for creation
+RUN cp /opt/travelpoint-mobile-server/deployment/db-export.sql /docker-entrypoint-initdb.d/
+
+
+# to run
+# docker run --name postgres --net tpnet -p 5432:5432 --rm -d gova/tp-db
