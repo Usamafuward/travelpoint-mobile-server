@@ -8,6 +8,7 @@ from app.utils import token
 from fastapi.responses import JSONResponse
 from app.utils.oauth2 import get_current_user
 import app.utils.oauth as oauth
+from app.utils.email import generate_otp, send_otp_email, save_otp, validate_otp
 
 
 router = APIRouter()
@@ -16,39 +17,86 @@ endpoint_errors = {
     500: {"model": SimpleErrorMessage, "description": "Database Error"},
 }
 
-@router.post("/register", status_code=status.HTTP_201_CREATED, responses=endpoint_errors)  # type: ignore
-async def register_user(
-    payload: UserRegistration = Body(...), response: Response = Response()
-):
-    hashed_password = hash_password(payload.password)
+# @router.post("/register", status_code=status.HTTP_201_CREATED, responses=endpoint_errors)  # type: ignore
+# async def register_user(
+#     payload: UserRegistration = Body(...), response: Response = Response()
+# ):
+#     hashed_password = hash_password(payload.password)
 
-    query = b"""INSERT INTO users (first_name, last_name, username, phone_number, location, password, nic_passport, email) \
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+#     query = b"""INSERT INTO users (first_name, last_name, username, phone_number, location, password, nic_passport, email) \
+#             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
 
-    try:
-        cur.execute(
-            query,
-            (
-                payload.first_name,
-                payload.last_name,
-                payload.first_name.lower() + payload.last_name.lower(),
-                payload.phone_number,
-                payload.location,
-                hashed_password,
-                payload.nic_passport,
-                payload.email,
-            ),
-        )
-        print("User registered!")
-        conn.commit()
-        return JSONResponse(content={"message": "User registered!"})
-    except Exception as e:
-        print(f"ERROR - DB:\n{e}")
+#     try:
+#         cur.execute(
+#             query,
+#             (
+#                 payload.first_name,
+#                 payload.last_name,
+#                 payload.first_name.lower() + payload.last_name.lower(),
+#                 payload.phone_number,
+#                 payload.location,
+#                 hashed_password,
+#                 payload.nic_passport,
+#                 payload.email,
+#             ),
+#         )
+#         print("User registered!")
+#         conn.commit()
+#         return JSONResponse(content={"message": "User registered!"})
+#     except Exception as e:
+#         print(f"ERROR - DB:\n{e}")
+#         return JSONResponse(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             content={"message": endpoint_errors[500]["description"]},
+#         )
+
+@router.post("/register", status_code=status.HTTP_201_CREATED, responses=endpoint_errors)
+async def register_user(payload: UserRegistration = Body(...)):
+
+    otp = generate_otp()
+
+    save_otp(payload.email, otp)
+
+    await send_otp_email(payload.email, otp)
+
+    return JSONResponse(content={"message": "OTP sent to your email. Please verify it."})
+
+@router.post("/verify-otp", status_code=status.HTTP_200_OK)
+async def verify_otp(otp: str, payload: UserRegistration = Body(...)):
+
+    if validate_otp(payload.email, otp):
+        hashed_password = hash_password(payload.password)
+
+        query = """
+        INSERT INTO users (first_name, last_name, username, phone_number, location, password, nic_passport, email)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        try:
+            cur.execute(
+                query,
+                (
+                    payload.first_name,
+                    payload.last_name,
+                    payload.first_name.lower() + payload.last_name.lower(),
+                    payload.phone_number,
+                    payload.location,
+                    hashed_password,
+                    payload.nic_passport,
+                    payload.email,
+                ),
+            )
+            conn.commit()
+            return JSONResponse(content={"message": "User successfully registered."})
+        except Exception as e:
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content={"message": "Error while registering the user."},
+            )
+    else:
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"message": endpoint_errors[500]["description"]},
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": "Invalid OTP."},
         )
-
 
 endpoint_status_codes = {
     200: {"description": "Login successful"},
@@ -104,6 +152,7 @@ endpoint_status_codes = {
     201: {"description": "Post created"},
     500: {"description": "Database Error"},
 }
+
 
 
 # Google OAuth2 login route
