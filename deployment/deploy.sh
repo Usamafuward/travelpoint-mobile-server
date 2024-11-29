@@ -15,11 +15,11 @@ fi
 
 # Build database image
 echo "Building database image..."
-docker build -t gova/tp-db -f Dockerfile.db .
+docker build -t gova/tp-db -f deployment/Dockerfile.db .
 
 # Build API image
 echo "Building API image..."
-docker build -t gova/tp-api -f Dockerfile.api .
+docker build -t gova/tp-api -f deployment/Dockerfile.api .
 
 # Stop existing containers if running
 echo "Checking for existing containers..."
