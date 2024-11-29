@@ -13,8 +13,8 @@ RUN apt-get update && apt-get -y install git
 
 # clone backend repo
 RUN git clone https://github.com/Usamafuward/travelpoint-mobile-server/
-RUN git checkout feature/gr/deployment
 WORKDIR /opt/travelpoint-mobile-server
+RUN git checkout feature/gr/deployment
 
 # copy database file for creation
 RUN cp /opt/travelpoint-mobile-server/deployment/db-export.sql /docker-entrypoint-initdb.d/
