@@ -202,3 +202,25 @@ async def delete_vehicle(vehicle_id: int):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=endpoint_errors[500]["description"],
         )
+    
+@router.get("/vehicles/status/{owner_id}", responses=endpoint_errors)
+async def check_vehicle_status(owner_id: int):
+    try:
+        query = """
+        SELECT status FROM vehicles
+        WHERE owner_id = %s
+        ORDER BY created_at DESC LIMIT 1
+        """
+        cur.execute(query, (owner_id,))
+        result = cur.fetchone()
+
+        if not result:
+            return {"status": 0}  # User has no vehicle records
+
+        return {"status": result["status"]}
+    except Exception as e:
+        print(f"ERROR - DB:\n{e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=endpoint_errors[500]["description"],
+        )
