@@ -194,3 +194,22 @@ async def delete_guide(guide_id: int):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=endpoint_errors[500]["description"],
         )
+    
+@router.get("/guides/status/{user_id}", responses=endpoint_errors)
+async def get_guide_status(user_id: int):
+    try:
+        query = "SELECT status FROM guides WHERE user_id = %s ORDER BY created_at DESC LIMIT 1"
+        cur.execute(query, (user_id,))
+        guide = cur.fetchone()
+        if not guide:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No guide requests found for the user",
+            )
+        return {"status": guide["status"]}
+    except Exception as e:
+        print(f"ERROR - DB:\n{e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=endpoint_errors[500]["description"],
+        )
