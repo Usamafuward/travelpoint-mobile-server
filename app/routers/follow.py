@@ -12,15 +12,16 @@ endpoint_errors = {
     500: {"description": "Database error"},
 }
 
-@router.post("/follow/{user_id}", status_code=status.HTTP_201_CREATED)
-async def follow_user(user_id: int, follower_id: int):
+@router.post("/follow", status_code=status.HTTP_201_CREATED)
+async def follow_user(request: FollowRequest):
+    print(f"User ID: {request.user_id}, Follower ID: {request.follower_id}")
     try:
         # Step 1: Check if a follow record already exists
         check_query = """
         SELECT * FROM follow 
         WHERE user_id = %s AND follower_id = %s
         """
-        cur.execute(check_query, (user_id, follower_id))
+        cur.execute(check_query, (request.user_id, request.follower_id))
         existing_follow = cur.fetchone()
 
         if existing_follow:
@@ -30,7 +31,7 @@ async def follow_user(user_id: int, follower_id: int):
             SET is_followed = true
             WHERE user_id = %s AND follower_id = %s
             """
-            cur.execute(update_query, (user_id, follower_id))
+            cur.execute(update_query, (request.user_id, request.follower_id))
             conn.commit()  # Don't forget to commit changes to the database
 
             return JSONResponse(
@@ -43,7 +44,7 @@ async def follow_user(user_id: int, follower_id: int):
             INSERT INTO follow (user_id, follower_id, is_followed) 
             VALUES (%s, %s, true)
             """
-            cur.execute(insert_query, (user_id, follower_id))
+            cur.execute(insert_query, (request.user_id, request.follower_id))
             conn.commit()  # Commit the new follow relationship
 
             return JSONResponse(

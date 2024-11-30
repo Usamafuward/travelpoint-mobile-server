@@ -54,6 +54,7 @@ async def get_profile(user_id: int ):
                     "profile_pic"
                 ],
                 bio=result["bio"],
+                type=result["type"]
             )
             return JSONResponse(
                 content=profile.dict()
