@@ -1,23 +1,23 @@
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from pydantic import EmailStr
-import pyotp
+import random
 
 # Email configuration
 conf = ConnectionConfig(
-    MAIL_USERNAME = "your_email@example.com",  # Update with your email
-    MAIL_PASSWORD = "your_password",  # Update with your email password or app-specific password
-    MAIL_FROM = "your_email@example.com",  # Update with your email
+    MAIL_USERNAME = "travelpoint192@gmail.com",  # Update with your email
+    MAIL_PASSWORD = "fkfb ncht xsbx lari",  # Update with your email password or app-specific password
+    MAIL_FROM = "travelpoint192@gmail.com",  # Update with your email
     MAIL_PORT = 587,
-    MAIL_SERVER = "smtp.example.com",  # Example: "smtp.gmail.com"
-    MAIL_TLS = True,
-    MAIL_SSL = False,
-    USE_CREDENTIALS = True,
-    VALIDATE_CERTS = True,
+    MAIL_SERVER = "smtp.gmail.com",  # Example: "smtp.gmail.com"
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
+    USE_CREDENTIALS=True,
+    VALIDATE_CERTS=True,
 )
 
 # OTP generator
 def generate_otp() -> str:
-    otp = pyotp.random_base32()
+    otp = f"{random.randint(100000, 999999)}"
     return otp
 
 # Send OTP function
