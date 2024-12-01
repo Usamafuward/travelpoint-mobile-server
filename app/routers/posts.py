@@ -103,38 +103,43 @@ async def get_all_posts():
     try:
         cur.execute(query)
         result = cur.fetchall()
-
         processed_result = []
-        for row in result:
-            # Decode images if present
-            images = row["images"]
-            if images:
-                images = [img.decode("utf-8") if isinstance(img, bytes) else img for img in images]
-            else:
-                images = []
-                
-            created_at = row["created_at"]
-            # Convert created_at to ISO string format
-            created_at_str = created_at.isoformat() if created_at else None
+        if result:
+            for row in result:
+                # Decode images if present
+                images = row["images"]
+                if images:
+                    images = [img.decode("utf-8") if isinstance(img, bytes) else img for img in images]
+                else:
+                    images = []
+                    
+                created_at = row["created_at"]
+                # Convert created_at to ISO string format
+                created_at_str = created_at.isoformat() if created_at else None
 
-            # Create PostResponse object for each row
-            post_data = PostResponse(
-                id=row["id"],
-                poster_id=row["poster_id"],
-                caption=row["caption"],
-                images=images,
-                video_url=row.get("video_url"),
-                location=row.get("location"),
-                tagged_users=row.get("tagged_users", []),
-                created_at=created_at_str,
-                likes=row.get("likes", 0)
+                # Create PostResponse object for each row
+                post_data = PostResponse(
+                    id=row["id"],
+                    poster_id=row["poster_id"],
+                    caption=row["caption"],
+                    images=images,
+                    video_url=row.get("video_url"),
+                    location=row.get("location"),
+                    tagged_users=row.get("tagged_users", []),
+                    created_at=created_at_str,
+                    likes=row.get("likes", 0)
+                )
+                processed_result.append(post_data)
+                print(processed_result)
+
+            return JSONResponse(
+                content=[post.dict() for post in processed_result]
             )
-            processed_result.append(post_data)
-            print(processed_result)
-
-        return JSONResponse(
-            content=[post.dict() for post in processed_result]
-        )
+        else:
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={"message": "No posts found"},
+            )
     except Exception as e:
         print(f"ERROR - DB:\n{e}")
         return JSONResponse(
@@ -178,7 +183,7 @@ async def get_post(post_id: int):
             return post_data
         else:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_200_OK,
                 detail="Post not found"
             )
     except Exception as e:

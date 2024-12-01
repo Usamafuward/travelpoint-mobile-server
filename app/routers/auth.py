@@ -72,10 +72,9 @@ async def verify_otp(data: OTPVerification):
             )
             conn.commit()
 
-            cur.execute(b"SELECT id FROM users WHERE email = %s", (email,))
+            cur.execute(b"SELECT * FROM users WHERE email = %s", (email,))
             result = cur.fetchone()
             if result:
-                user_id = result["id"]
                 access_token_expires = timedelta(minutes=token.ACCESS_TOKEN_EXPIRE_MINUTES)
                 access_token = token.create_access_token(data={"sub": email})
 
@@ -83,7 +82,8 @@ async def verify_otp(data: OTPVerification):
                     content={
                         "access_token": access_token,
                         "token_type": "bearer",
-                        "user_id": user_id,
+                        "user_id": result["id"],
+                        "user_type": result["type"],
                     },
                     status_code=status.HTTP_200_OK,
                 )
@@ -134,6 +134,7 @@ async def login_user(
                         "access_token": access_token,
                         "token_type": "bearer",
                         "user_id": result["id"],  # Return the user ID as well
+                        "user_type": result["type"],
                     },
                 )
             else:

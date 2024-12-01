@@ -1,5 +1,10 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
+
+class DocumentResponse(BaseModel):
+    filename: Optional[str]
+    text: Optional[str]
+    base64_pdf: Optional[str]
 
 class GuideResponse(BaseModel):
     id: int
@@ -8,10 +13,13 @@ class GuideResponse(BaseModel):
     language: str
     location: str
     preference: str
-    description: Optional[str]
-    document_path: Optional[str]
-    photo_path: Optional[str]
-    created_at: int
+    price: float = 0.0
+    about: Optional[str]
+    wishlist: Optional[List[int]]
+    profile_pic: Optional[str]
+    email: EmailStr
+    phone_number: Optional[int]
+    availability: Optional[bool]
 
 class CreateGuideRequest(BaseModel):
     name: str
@@ -45,7 +53,7 @@ class VehicleResponse(BaseModel):
     milage: float
     price: float
     description: Optional[str]
-    document_path: Optional[str]
+    document_path: Optional[DocumentResponse]
     photo_path: Optional[str]
     created_at: int
 
@@ -62,7 +70,7 @@ class AuthorityResponse(BaseModel):
     name: str
     location: str
     description: Optional[str]
-    document_path: Optional[str]
+    document_path: Optional[DocumentResponse]
     photo_path: Optional[str]
     created_at: int
 
