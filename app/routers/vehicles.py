@@ -5,6 +5,8 @@ from typing import List, Optional
 from app.schemas.services import VehicleResponse, CreateVehicleRequest
 import os
 from app.utils.image_processing import process_images
+from app.utils.pdf_processing import process_pdf
+import json
 
 
 router = APIRouter()
@@ -29,9 +31,9 @@ async def create_vehicle(
     
     document_path = None
     if document:
-        document_path = f"uploads/{document.filename}"
-        with open(document_path, "wb") as buffer:
-            buffer.write(await document.read())
+        document_content = await process_pdf(document)
+        if document_content:
+            document_path = json.dumps(document_content)
 
     photo_path = None
     if photo:

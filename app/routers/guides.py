@@ -5,7 +5,9 @@ from typing import List, Optional
 from app.schemas.services import GuideResponse, CreateGuideRequest
 import datetime
 from app.utils.image_processing import process_images
+from app.utils.pdf_processing import process_pdf
 import os
+import json
 
 router = APIRouter()
 
@@ -24,13 +26,12 @@ async def create_guide(
     document: Optional[UploadFile] = None,
     photo: Optional[UploadFile] = None,
 ):
-    os.makedirs("uploads", exist_ok=True)
     
     document_path = None
     if document:
-        document_path = f"uploads/{document.filename}"
-        with open(document_path, "wb") as buffer:
-            buffer.write(await document.read())
+        document_content = await process_pdf(document)
+        if document_content:
+            document_path = json.dumps(document_content)
 
     photo_path = None
     if photo:
@@ -79,22 +80,48 @@ async def create_guide(
 async def get_guide(guide_id: int):
     try:
         query = "SELECT * FROM guides WHERE id = %s"
+        query = """
+            SELECT 
+                guides.id,
+                guides.language,
+                guides.location,
+                guides.preference,
+                guides.about,
+                guides.price,
+                guides.wishlist,
+                guides.availability,
+                users.id as user_id,
+                users.first_name,
+                users.last_name,
+                users.profile_pic,
+                users.email,
+                users.phone_number
+            FROM guides
+            JOIN users ON guides.user_id = users.id
+            WHERE guides.id = %s
+        """
         cur.execute(query, (guide_id,))
         guide = cur.fetchone()
         if not guide:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=endpoint_errors[404]["description"],
-            )
+            )   
+        
         return GuideResponse(
             id=guide["id"],
             language=guide["language"],
             location=guide["location"],
-            preference=guide["preference"].split(","),
-            description=guide["description"],
-            document_path=guide["document_path"],
-            photo_path=guide["photo_path"],
-            created_at=int(guide["created_at"].timestamp()),
+            preference=guide["preference"],
+            about=guide["about"],
+            price=guide["price"],
+            wishlist=guide["wishlist"],
+            user_id=guide["user_id"],
+            name=guide["first_name"] + " " + guide["last_name"],
+            profile_pic=guide["profile_pic"],
+            email=guide["email"],
+            phone_number=guide["phone_number"],
+            availability=guide["availability"],
         )
     except Exception as e:
         print(f"ERROR - DB:\n{e}")
@@ -104,10 +131,31 @@ async def get_guide(guide_id: int):
         )
 
 
-@router.get("/guides/all", response_model=List[GuideResponse], responses=endpoint_errors)
+@router.get("/guides_all", response_model=List[GuideResponse], responses=endpoint_errors)
 async def get_all_guides():
     try:
-        query = "SELECT * FROM guides"
+        query = """
+            SELECT 
+                guides.id,
+                guides.language,
+                guides.location,
+                guides.preference,
+                guides.about,
+                guides.price,
+                guides.wishlist,
+                guides.availability,
+                users.id as user_id,
+                users.first_name,
+                users.last_name,
+                users.profile_pic,
+                users.email,
+                users.phone_number
+            FROM guides JOIN users ON guides.user_id = users.id
+        """
+        # WHERE g.language = %s AND g.price BETWEEN %s AND %s AND g.availability = TRUE
+        # language: str, min_price: float, max_price: float
+        
+        # cur.execute(query, (language, min_price, max_price))
         cur.execute(query)
         guides = cur.fetchall()
         return [
@@ -115,11 +163,16 @@ async def get_all_guides():
                 id=guide["id"],
                 language=guide["language"],
                 location=guide["location"],
-                preference=guide["preference"].split(","),
-                description=guide["description"],
-                document_path=guide["document_path"],
-                photo_path=guide["photo_path"],
-                created_at=int(guide["created_at"].timestamp()),
+                preference=guide["preference"],
+                about=guide["about"],
+                price=guide["price"],
+                wishlist=guide["wishlist"],
+                user_id=guide["user_id"],
+                name=guide["first_name"] + " " + guide["last_name"],
+                profile_pic=guide["profile_pic"],
+                email=guide["email"],
+                phone_number=guide["phone_number"],
+                availability=guide["availability"],
             )
             for guide in guides
         ]
@@ -137,7 +190,8 @@ async def update_guide(
     language: Optional[str] = Form(None),
     location: Optional[str] = Form(None),
     preference: Optional[str] = Form(None),
-    description: Optional[str] = Form(None),
+    about: Optional[str] = Form(None),
+    availability: Optional[bool] = Form(None),
 ):
     try:
         updates = []
@@ -151,9 +205,12 @@ async def update_guide(
         if preference:
             updates.append("preference = %s")
             params.append(preference)
-        if description:
-            updates.append("description = %s")
-            params.append(description)
+        if about:
+            updates.append("about = %s")
+            params.append(about)
+        if availability is not None:
+            updates.append("availability = %s")
+            params.append(availability)
 
         if not updates:
             raise HTTPException(
