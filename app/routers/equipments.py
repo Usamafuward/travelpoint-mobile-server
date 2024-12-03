@@ -64,7 +64,25 @@ async def create_equipment(
 @router.get("/equipment/{equipment_id}", response_model=EquipmentResponse, responses=endpoint_errors)
 async def get_equipment(equipment_id: int):
     try:
-        query = "SELECT * FROM equipment WHERE id = %s"
+        query = """
+            SELECT 
+                equipments.id,
+                equipments.owner_id,
+                equipments.type,
+                equipments.quantity,
+                equipments.location,
+                equipments.description,
+                equipments.price_per_day,
+                equipments.wishlist,
+                equipments.availability,
+                equipments.photo_path,
+                users.first_name,
+                users.last_name,
+                users.email,
+                users.phone_number
+            FROM equipments JOIN users ON equipments.owner_id = users.id
+            WHERE id = %s
+        """
         cur.execute(query, (equipment_id,))
         equipment = cur.fetchone()
         if not equipment:
@@ -74,13 +92,18 @@ async def get_equipment(equipment_id: int):
             )
         return EquipmentResponse(
             id=equipment["id"],
-            name=equipment["name"],
-            type=equipment["type"],
-            condition=equipment["condition"],
-            description=equipment["description"],
-            document_path=equipment["document_path"],
-            photo_path=equipment["photo_path"],
-            created_at=int(equipment["created_at"].timestamp()),
+                owner_id=equipment["owner_id"],
+                type=equipment["type"],
+                description=equipment["description"],
+                price_per_day=equipment["price_per_day"],
+                photo_path=equipment["photo_path"],
+                quantity=equipment["quantity"],
+                wishlist=equipment["wishlist"],
+                phone_number=equipment["phone_number"],
+                email=equipment["email"],
+                name=equipment["first_name"] + " " + equipment["last_name"],
+                availability=equipment["availability"],
+                location=equipment["location"],
         )
     except Exception as e:
         print(f"ERROR - DB:\n{e}")
@@ -93,19 +116,41 @@ async def get_equipment(equipment_id: int):
 @router.get("/equipment/all", response_model=List[EquipmentResponse], responses=endpoint_errors)
 async def get_all_equipment():
     try:
-        query = "SELECT * FROM equipment"
+        query = """
+            SELECT 
+                equipments.id,
+                equipments.owner_id,
+                equipments.type,
+                equipments.quantity,
+                equipments.location,
+                equipments.description,
+                equipments.price_per_day,
+                equipments.wishlist,
+                equipments.availability,
+                equipments.photo_path,
+                users.first_name,
+                users.last_name,
+                users.email,
+                users.phone_number
+            FROM equipments JOIN users ON equipments.owner_id = users.id
+        """
         cur.execute(query)
         equipments = cur.fetchall()
         return [
             EquipmentResponse(
                 id=equipment["id"],
-                name=equipment["name"],
+                owner_id=equipment["owner_id"],
                 type=equipment["type"],
-                condition=equipment["condition"],
                 description=equipment["description"],
-                document_path=equipment["document_path"],
+                price_per_day=equipment["price_per_day"],
                 photo_path=equipment["photo_path"],
-                created_at=int(equipment["created_at"].timestamp()),
+                quantity=equipment["quantity"],
+                wishlist=equipment["wishlist"],
+                email=equipment["email"],
+                phone_number=equipment["phone_number"],
+                name=equipment["first_name"] + " " + equipment["last_name"],
+                availability=equipment["availability"],
+                location=equipment["location"],
             )
             for equipment in equipments
         ]

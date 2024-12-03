@@ -6,7 +6,6 @@ from app.schemas.services import VehicleResponse, CreateVehicleRequest
 import os
 from app.utils.image_processing import process_images
 from app.utils.pdf_processing import process_pdf
-import json
 
 
 router = APIRouter()
@@ -33,7 +32,7 @@ async def create_vehicle(
     if document:
         document_content = await process_pdf(document)
         if document_content:
-            document_path = json.dumps(document_content)
+            document_path = document_content
 
     photo_path = None
     if photo:
@@ -82,7 +81,26 @@ async def create_vehicle(
 @router.get("/vehicles/{vehicle_id}", response_model=VehicleResponse, responses=endpoint_errors)
 async def get_vehicle(vehicle_id: int):
     try:
-        query = "SELECT * FROM vehicles WHERE id = %s"
+        query = """
+            SELECT 
+                vehicles.id,
+                vehicles.owner_id,
+                vehicles.type,
+                vehicles.capacity,
+                vehicles.milage,
+                vehicles.location,
+                vehicles.description,
+                vehicles.price,
+                vehicles.wishlist,
+                vehicles.photo_path,
+                users.first_name,
+                users.last_name,
+                users.email,
+                users.phone_number
+            FROM vehicles
+            JOIN users ON vehicles.owner_id = users.id
+            WHERE vehicles.id = %s
+        """
         cur.execute(query, (vehicle_id,))
         vehicle = cur.fetchone()
         if not vehicle:
@@ -92,14 +110,19 @@ async def get_vehicle(vehicle_id: int):
             )
         return VehicleResponse(
             id=vehicle["id"],
+            owner_id=vehicle["owner_id"],
             type=vehicle["type"],
             capacity=vehicle["capacity"],
             milage=vehicle["milage"],
+            location=vehicle["location"],
             price=vehicle["price"],
             description=vehicle["description"],
-            document_path=vehicle["document_path"],
-            photo_path=vehicle["photo_path"],
-            created_at=int(vehicle["created_at"].timestamp()),
+            wishlist=vehicle["wishlist"],
+            photo_path=vehicle["photo_path"], 
+            email=vehicle["email"],
+            phone_number=vehicle["phone_number"],           
+            name=vehicle["first_name"] + " " + vehicle["last_name"],
+
         )
     except Exception as e:
         print(f"ERROR - DB:\n{e}")
@@ -112,20 +135,41 @@ async def get_vehicle(vehicle_id: int):
 @router.get("/vehicles/all", response_model=List[VehicleResponse], responses=endpoint_errors)
 async def get_all_vehicles():
     try:
-        query = "SELECT * FROM vehicles"
+        query = """
+            SELECT 
+                vehicles.id,
+                vehicles.owner_id,
+                vehicles.type,
+                vehicles.capacity,
+                vehicles.milage,
+                vehicles.location,
+                vehicles.description,
+                vehicles.price,
+                vehicles.wishlist,
+                vehicles.photo_path,
+                users.first_name,
+                users.last_name,
+                users.email,
+                users.phone_number
+            FROM vehicles JOIN users ON vehicles.owner_id = users.id
+        """
         cur.execute(query)
         vehicles = cur.fetchall()
         return [
             VehicleResponse(
                 id=vehicle["id"],
+                owner_id=vehicle["owner_id"],
                 type=vehicle["type"],
                 capacity=vehicle["capacity"],
                 milage=vehicle["milage"],
+                location=vehicle["location"],
                 price=vehicle["price"],
                 description=vehicle["description"],
-                document_path=vehicle["document_path"],
-                photo_path=vehicle["photo_path"],
-                created_at=int(vehicle["created_at"].timestamp()),
+                wishlist=vehicle["wishlist"],
+                photo_path=vehicle["photo_path"], 
+                email=vehicle["email"],
+                phone_number=vehicle["phone_number"],           
+                name=vehicle["first_name"] + " " + vehicle["last_name"],
             )
             for vehicle in vehicles
         ]
