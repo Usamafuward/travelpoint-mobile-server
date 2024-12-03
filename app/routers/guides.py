@@ -256,10 +256,8 @@ async def get_guide_status(user_id: int):
         cur.execute(query, (user_id,))
         guide = cur.fetchone()
         if not guide:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No guide requests found for the user",
-            )
+            return {"status": 0}  # User has no vehicle records
+
         return {"status": guide["status"]}
     except Exception as e:
         print(f"ERROR - DB:\n{e}")
