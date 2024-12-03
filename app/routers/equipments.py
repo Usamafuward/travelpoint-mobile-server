@@ -243,6 +243,7 @@ async def get_equipment_status(owner_id: int):
 
         if not result:
             return {"status": 0}
+
         return {"status": result["status"]}
     except Exception as e:
         print(f"ERROR - DB:\n{e}")

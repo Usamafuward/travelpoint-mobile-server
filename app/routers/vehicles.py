@@ -262,7 +262,7 @@ async def check_vehicle_status(owner_id: int):
         result = cur.fetchone()
 
         if not result:
-            return {"status": 0}  # User has no vehicle records
+            return {"status": 0} 
 
         return {"status": result["status"]}
     except Exception as e:
