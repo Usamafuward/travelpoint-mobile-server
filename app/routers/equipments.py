@@ -182,16 +182,16 @@ async def delete_equipment(equipment_id: int):
         )
 
 
-@router.get("/equipment/status/{user_id}", responses=endpoint_errors)
-async def get_equipment_status(user_id: int):
+@router.get("/equipment/status/{owner_id}", responses=endpoint_errors)
+async def get_equipment_status(owner_id: int):
     try:
         query = """
         SELECT status FROM equipments
-        WHERE user_id = %s
+        WHERE owner_id = %s
         ORDER BY created_at DESC
         LIMIT 1;
         """
-        cur.execute(query, (user_id,))
+        cur.execute(query, (owner_id,))
         result = cur.fetchone()
 
         if not result:
