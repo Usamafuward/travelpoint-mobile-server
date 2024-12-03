@@ -195,10 +195,8 @@ async def get_equipment_status(owner_id: int):
         result = cur.fetchone()
 
         if not result:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No guide requests found for the user",
-            )
+            return {"status": 0} 
+
         return {"status": result["status"]}
     except Exception as e:
         print(f"ERROR - DB:\n{e}")
