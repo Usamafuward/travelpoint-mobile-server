@@ -258,7 +258,7 @@ async def get_guide_status(user_id: int):
         if not guide:
             return {"status": 0}  # User has no vehicle records
 
-        return {"status": result["status"]}
+        return {"status": guide["status"]}
     except Exception as e:
         print(f"ERROR - DB:\n{e}")
         raise HTTPException(
