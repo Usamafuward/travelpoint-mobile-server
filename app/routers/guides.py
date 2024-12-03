@@ -6,8 +6,6 @@ from app.schemas.services import GuideResponse, CreateGuideRequest
 import datetime
 from app.utils.image_processing import process_images
 from app.utils.pdf_processing import process_pdf
-import os
-import json
 
 router = APIRouter()
 
@@ -31,7 +29,7 @@ async def create_guide(
     if document:
         document_content = await process_pdf(document)
         if document_content:
-            document_path = json.dumps(document_content)
+            document_path = document_content
 
     photo_path = None
     if photo:
@@ -79,7 +77,6 @@ async def create_guide(
 @router.get("/guides/{guide_id}", response_model=GuideResponse, responses=endpoint_errors)
 async def get_guide(guide_id: int):
     try:
-        query = "SELECT * FROM guides WHERE id = %s"
         query = """
             SELECT 
                 guides.id,

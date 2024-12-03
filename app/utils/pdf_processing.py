@@ -16,8 +16,4 @@ async def process_pdf(pdf: UploadFile) -> dict:
         
         encoded_pdf = base64.b64encode(pdf_data).decode("utf-8")
 
-        return {
-            "filename": pdf.filename,
-            "text": text,
-            "base64_pdf": encoded_pdf
-        }
+        return encoded_pdf
