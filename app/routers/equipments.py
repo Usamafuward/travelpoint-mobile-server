@@ -18,6 +18,7 @@ endpoint_errors = {
 async def create_equipment(
     owner_id: int = Form(...),
     type: str = Form(...),
+    location: str = Form(...),
     description: Optional[str] = Form(None),
     photo: Optional[UploadFile] = None,
 ):
@@ -29,8 +30,8 @@ async def create_equipment(
             
     # Prepare and execute database query
     query = """
-    INSERT INTO equipments (Owner_id, type, description, photo_path)
-    VALUES (%s, %s, %s, %s) RETURNING id
+    INSERT INTO equipments (Owner_id, type, description, photo_path, location)
+    VALUES (%s, %s, %s, %s, %s) RETURNING id
     """
     
     try:
@@ -41,6 +42,7 @@ async def create_equipment(
                 type,
                 description,
                 photo_path,
+                location,
             ),
         )
         equipment_id = cur.fetchone()
@@ -240,7 +242,7 @@ async def get_equipment_status(owner_id: int):
         result = cur.fetchone()
 
         if not result:
-            return {"status": 0} 
+            return {"status": 0}
 
         return {"status": result["status"]}
     except Exception as e:

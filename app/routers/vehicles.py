@@ -19,6 +19,7 @@ endpoint_errors = {
 async def create_vehicle(
     owner_id: int = Form(...),
     type: str = Form(...),
+    location: str = Form(...),
     capacity: int = Form(...),
     milage: float = Form(...),
     price: float = Form(...),
@@ -42,8 +43,8 @@ async def create_vehicle(
 
     # Prepare and execute database query
     query = """
-    INSERT INTO vehicles (owner_id, type, capacity, milage, price, description, document_path, photo_path)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+    INSERT INTO vehicles (owner_id, type, capacity, milage, price, description, document_path, photo_path, location)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
     """
     
     try:
