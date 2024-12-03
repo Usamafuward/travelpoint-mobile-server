@@ -227,23 +227,21 @@ async def delete_equipment(equipment_id: int):
         )
 
 
-@router.get("/equipment/status/{user_id}", responses=endpoint_errors)
-async def get_equipment_status(user_id: int):
+@router.get("/equipment/status/{owner_id}", responses=endpoint_errors)
+async def get_equipment_status(owner_id: int):
     try:
         query = """
         SELECT status FROM equipments
-        WHERE user_id = %s
+        WHERE owner_id = %s
         ORDER BY created_at DESC
         LIMIT 1;
         """
-        cur.execute(query, (user_id,))
+        cur.execute(query, (owner_id,))
         result = cur.fetchone()
 
         if not result:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No guide requests found for the user",
-            )
+            return {"status": 0} 
+
         return {"status": result["status"]}
     except Exception as e:
         print(f"ERROR - DB:\n{e}")
