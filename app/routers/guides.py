@@ -41,7 +41,7 @@ async def create_guide(
 
     # Prepare and execute database query
     query = """
-    INSERT INTO guides (user_id, language, location, preference, description, document_path, photo_path)
+    INSERT INTO guides (user_id, language, location, preference, about, document_path, photo_path)
     VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id
     """
     try:
